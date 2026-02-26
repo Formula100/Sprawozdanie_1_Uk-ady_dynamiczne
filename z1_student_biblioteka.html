@@ -1,0 +1,257 @@
+<!DOCTYPE html><html lang="pl"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Zad. 1 — Student i miejsca nauki</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#070b1c;--card:#111628;--bord:#1e2550;--acc:#6090ff;--a2:#ff9060;--a3:#60ffb0;--mu:#6070a0;--tx:#dde4ff}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:0 0 80px}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 800px 500px at 15% 25%, rgba(60,100,255,.06),transparent 70%),
+  radial-gradient(ellipse 600px 600px at 85% 75%, rgba(255,80,100,.04),transparent 70%);
+  pointer-events:none;z-index:0}
+.page{max-width:800px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+header{padding:48px 0 36px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:32px}
+.badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--acc);padding:4px 14px;border:1px solid rgba(96,144,255,.4);border-radius:100px;display:inline-block;margin-bottom:16px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(26px,5vw,42px);font-weight:900;line-height:1.1;margin-bottom:8px}
+h1 span{background:linear-gradient(135deg,#6090ff,#90c0ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{color:var(--mu);font-size:14px}
+.card{background:var(--card);border:1.5px solid var(--bord);border-radius:20px;padding:26px;margin-bottom:18px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.story{background:rgba(96,144,255,.06);border:1.5px solid rgba(96,144,255,.15);border-radius:16px;padding:22px;margin-bottom:18px}
+.story p{font-size:14px;line-height:1.8;color:#b8c8e8;font-style:italic}
+.story strong{color:#c8dcff;font-style:normal}
+/* SVG graph */
+#graph-svg{width:100%;height:260px;border-radius:14px;background:rgba(0,0,0,.2);border:1px solid var(--bord);display:block;margin:8px 0}
+/* prob matrix table */
+.mat-wrap{overflow-x:auto;margin:0 0 4px}
+.mat{border-collapse:collapse;width:100%;min-width:320px}
+.mat th{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--mu);padding:8px 12px;text-align:center;border:1px solid var(--bord)}
+.mat td{padding:10px 14px;text-align:center;font-family:'DM Mono',monospace;font-size:16px;font-weight:700;border:1px solid var(--bord);transition:all .3s;border-radius:0}
+.mat td.highlight{background:rgba(96,144,255,.12)}
+.sum-cell{font-size:13px!important;font-weight:500!important;font-family:'Nunito',sans-serif!important}
+/* sliders */
+.sl-group{margin-bottom:18px}
+.sl-group-title{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.sl-row{display:flex;align-items:center;gap:10px;margin:7px 0}
+.sl-label{width:120px;font-size:13px;font-weight:700;font-family:'DM Mono',monospace}
+.sl-track{flex:1;position:relative;height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:visible}
+.sl-fill{height:100%;border-radius:100px;transition:width .4s cubic-bezier(.34,1.56,.64,1);position:absolute;inset:0 auto 0 0}
+input[type=range]{position:absolute;inset:0;width:100%;height:100%;-webkit-appearance:none;background:transparent;cursor:pointer;z-index:3}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(0,0,0,.4);cursor:pointer}
+.sl-val{width:44px;text-align:right;font-family:'DM Mono',monospace;font-size:14px;font-weight:700}
+.sum-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:12px;padding:5px 14px;border-radius:100px;margin-top:6px;transition:all .3s}
+.sum-ok{background:rgba(96,255,176,.1);color:#60ffb0;border:1px solid rgba(96,255,176,.25)}
+.sum-bad{background:rgba(255,100,100,.1);color:#ff8080;border:1px solid rgba(255,100,100,.25)}
+/* sim */
+.states-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.state-node{background:rgba(255,255,255,.02);border:2px solid rgba(255,255,255,.07);border-radius:14px;padding:16px 10px;text-align:center;transition:all .35s cubic-bezier(.34,1.56,.64,1)}
+.state-node.active{transform:scale(1.08)}
+.sn-icon{font-size:32px;display:block;margin-bottom:6px}
+.sn-name{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.sn-prob{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;margin:4px 0}
+.sn-bar{height:5px;background:rgba(255,255,255,.06);border-radius:100px;margin-top:6px;overflow:hidden}
+.sn-fill{height:100%;border-radius:100px;transition:width .7s cubic-bezier(.34,1.56,.64,1)}
+.sn-label{font-size:11px;color:var(--mu);margin-top:4px}
+.btn{padding:10px 22px;border-radius:100px;border:2px solid;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .18s;letter-spacing:.3px;margin:3px}
+.btn-primary{border-color:var(--acc);background:transparent;color:var(--tx)}
+.btn-primary:hover{background:var(--acc);color:var(--bg);transform:scale(1.04)}
+.btn-fill{background:var(--acc);border-color:var(--acc);color:var(--bg)}
+.btn-fill:hover{filter:brightness(1.15);transform:scale(1.04)}
+.tape{display:flex;gap:6px;flex-wrap:wrap;min-height:48px;padding:12px;background:rgba(255,255,255,.02);border-radius:12px;align-items:center;margin:10px 0;border:1px solid var(--bord)}
+.dot{font-size:26px;animation:pop .35s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.info-bar{font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;background:rgba(96,255,176,.06);border:1px solid rgba(96,255,176,.15);border-radius:10px;margin-top:8px;min-height:38px;transition:all .3s}
+.prob-equation{font-family:'DM Mono',monospace;font-size:13px;line-height:2;color:var(--a3)}
+</style>
+</head><body>
+<div class="page">
+<header>
+  <div class="badge">ZADANIE 1</div>
+  <h1>Student i <span>miejsca nauki</span></h1>
+  <div class="sub">Biblioteka · Akademik · Kawiarnia — macierz przejścia i jej własności</div>
+</header>
+
+<div class="story">
+  <p>🎓 <strong>Historyjka:</strong> Student w sesji każdego ranka wybiera miejsce nauki: <strong>biblioteka 📚</strong>, <strong>akademik 🛋️</strong> lub <strong>kawiarnia ☕</strong>. Decyduje wyłącznie na podstawie <em>wczorajszego dnia</em> — nie pamięta gdzie był tydzień temu. W bibliotece było cicho → duża szansa że wróci. Kawiarnia droga → zmiana. Musi wybrać <strong>dokładnie jedno miejsce</strong> — dlatego każdy wiersz macierzy sumuje się do 1.</p>
+</div>
+
+<div class="card">
+  <div class="card-title">🎛️ Ustaw macierz nawyków studenta</div>
+  <div id="slider-area"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">📐 Macierz przejścia P <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mu);font-weight:400">(prawdopodobieństwa w %)</span></div>
+  <div class="mat-wrap"><div id="matrix-out"></div></div>
+  <div class="prob-equation" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bord)">
+    p_ij ≥ 0      (każde prawdopodobieństwo jest nieujemne)<br>
+    Σⱼ p_ij = 1   (student MUSI gdzieś być — zdarzenia rozłączne i zupełne)
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">🎲 Symulacja — gdzie jest student?</div>
+  <div class="states-grid" id="states-grid"></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn btn-fill" onclick="simStep()">▶ Następny dzień</button>
+    <button class="btn btn-primary" onclick="simWeek()">📅 Cały tydzień (×7)</button>
+    <button class="btn btn-primary" onclick="simReset()">↺ Reset</button>
+  </div>
+  <div class="tape" id="tape"><span style="color:var(--mu);font-size:13px">Kliknij "Następny dzień"…</span></div>
+  <div class="info-bar" id="info-bar">— wybierz miejsce startowe lub kliknij dalej</div>
+</div>
+
+<div class="card">
+  <div class="card-title">📊 Graf przejść (SVG)</div>
+  <svg id="graph-svg" viewBox="0 0 700 240"></svg>
+</div>
+</div>
+
+<script>
+const N = ['Biblioteka','Akademik','Kawiarnia'];
+const IC = ['📚','🛋️','☕'];
+const C = ['#6090ff','#ff9060','#60ffb0'];
+let P = [[0.55,0.25,0.20],[0.20,0.40,0.40],[0.30,0.30,0.40]];
+let cur = 0, hist = [];
+
+function clamp01(v){ return Math.max(0,Math.min(1,v)); }
+
+function renderSliders(){
+  let h='';
+  P.forEach((row,i)=>{
+    h+=`<div class="sl-group" style="padding:14px;background:rgba(255,255,255,.02);border-radius:12px;border:1px solid rgba(${i===0?'96,144,255':i===1?'255,144,96':'96,255,176'},.12);margin-bottom:12px">
+      <div class="sl-group-title" style="color:${C[i]}">${IC[i]} ${N[i]} →</div>`;
+    row.forEach((p,j)=>{
+      h+=`<div class="sl-row">
+        <div class="sl-label" style="color:${C[j]}">→ ${N[j].split(' ')[0]}</div>
+        <div class="sl-track">
+          <div class="sl-fill" id="sf${i}${j}" style="width:${p*100}%;background:${C[j]}"></div>
+          <input type="range" id="sl${i}${j}" min="0" max="100" value="${Math.round(p*100)}" oninput="onSlider(${i},${j},+this.value)">
+        </div>
+        <div class="sl-val" style="color:${C[j]}" id="sv${i}${j}">${(p*100).toFixed(0)}%</div>
+      </div>`;
+    });
+    const sum=row.reduce((a,b)=>a+b);
+    const ok=Math.abs(sum-1)<0.02;
+    h+=`<div class="sum-badge ${ok?'sum-ok':'sum-bad'}" id="sb${i}">Suma: ${(sum*100).toFixed(0)}% ${ok?'✓':'✗'}</div></div>`;
+  });
+  document.getElementById('slider-area').innerHTML=h;
+}
+
+function onSlider(row,col,val){
+  P[row][col]=val/100;
+  const rest=1-P[row][col];
+  const others=P[row].map((_,j)=>j!==col?P[row][j]:0);
+  const sumO=others.reduce((a,b)=>a+b)||0.001;
+  P[row].forEach((_,j)=>{ if(j!==col) P[row][j]=clamp01(others[j]/sumO*rest); });
+  updateUI();
+}
+
+function updateUI(){
+  P.forEach((row,i)=>{
+    const sum=row.reduce((a,b)=>a+b);
+    row.forEach((p,j)=>{
+      const sf=document.getElementById('sf'+i+j);
+      const sl=document.getElementById('sl'+i+j);
+      const sv=document.getElementById('sv'+i+j);
+      if(sf)sf.style.width=(p*100)+'%';
+      if(sl)sl.value=Math.round(p*100);
+      if(sv)sv.textContent=(p*100).toFixed(0)+'%';
+    });
+    const sb=document.getElementById('sb'+i);
+    const ok=Math.abs(sum-1)<0.02;
+    if(sb){sb.className='sum-badge '+(ok?'sum-ok':'sum-bad');sb.textContent='Suma: '+(sum*100).toFixed(0)+'% '+(ok?'✓':'✗');}
+  });
+  buildMatrix(); buildStatesGrid(); drawGraph();
+}
+
+function buildMatrix(){
+  let h=`<table class="mat"><tr><th></th>${N.map((n,j)=>`<th style="color:${C[j]}">${IC[j]} ${n}</th>`).join('')}<th style="color:var(--mu)">Σ</th></tr>`;
+  P.forEach((row,i)=>{
+    const sum=row.reduce((a,b)=>a+b);
+    const ok=Math.abs(sum-1)<0.02;
+    h+=`<tr><th style="color:${C[i]}">${IC[i]} ${N[i]}</th>`;
+    row.forEach((p,j)=>{
+      const bg=`rgba(${j===0?'96,144,255':j===1?'255,144,96':'96,255,176'},${p*0.22})`;
+      h+=`<td style="color:${C[j]};background:${bg};font-size:${p>0.35?'20px':'16px'}">${(p*100).toFixed(0)}%</td>`;
+    });
+    h+=`<td class="sum-cell" style="color:${ok?'#60ffb0':'#ff8080'};font-weight:700">${(sum*100).toFixed(0)}%</td></tr>`;
+  });
+  h+='</table>';
+  document.getElementById('matrix-out').innerHTML=h;
+}
+
+function buildStatesGrid(){
+  const probs=P[cur];
+  document.getElementById('states-grid').innerHTML=N.map((name,i)=>`
+    <div class="state-node ${i===cur?'active':''}" style="border-color:${i===cur?C[i]:'rgba(255,255,255,.07)'}">
+      <span class="sn-icon">${IC[i]}</span>
+      <div class="sn-name" style="color:${C[i]}">${name}</div>
+      ${i===cur
+        ? `<div class="sn-prob" style="color:${C[i]}">TUTAJ</div><div class="sn-label">aktualny stan</div>`
+        : `<div class="sn-prob" style="color:${C[i]}">${(probs[i]*100).toFixed(0)}%</div>
+           <div class="sn-bar"><div class="sn-fill" style="width:${probs[i]*100}%;background:${C[i]}"></div></div>
+           <div class="sn-label">p(jutro tutaj)</div>`
+      }
+    </div>`).join('');
+}
+
+function simStep(){
+  const probs=P[cur]; let r=Math.random(),cum=0,next=probs.length-1;
+  for(let k=0;k<probs.length;k++){cum+=probs[k];if(r<cum){next=k;break;}}
+  const prev=cur; cur=next; hist.push(next);
+  const tape=document.getElementById('tape');
+  if(hist.length===1) tape.innerHTML='';
+  const sp=document.createElement('span'); sp.className='dot'; sp.style.animationDelay='0s';
+  sp.textContent=IC[next]; tape.appendChild(sp); tape.scrollLeft=tape.scrollWidth;
+  buildStatesGrid();
+  document.getElementById('info-bar').innerHTML=
+    `Wczoraj: ${IC[prev]} <strong>${N[prev]}</strong> → Dziś: ${IC[next]} <strong style="color:${C[next]}">${N[next]}</strong> &nbsp;|&nbsp; P(przejście) = <strong style="color:${C[next]};font-size:16px">${(P[prev][next]*100).toFixed(0)}%</strong>`;
+}
+
+function simWeek(){for(let i=0;i<7;i++) setTimeout(simStep,i*220);}
+function simReset(){cur=0;hist=[];document.getElementById('tape').innerHTML='<span style="color:var(--mu);font-size:13px">Kliknij "Następny dzień"…</span>';document.getElementById('info-bar').textContent='— wybierz miejsce startowe lub kliknij dalej';buildStatesGrid();}
+
+function drawGraph(){
+  const svg=document.getElementById('graph-svg');
+  const npos=[[120,120],[350,55],[580,120]];
+  const R=50;
+  let h='';
+  // edges
+  P.forEach((row,i)=>{
+    row.forEach((p,j)=>{
+      if(p<0.01) return;
+      const [x1,y1]=npos[i],[x2,y2]=npos[j];
+      if(i===j){
+        const a=i===0?Math.PI*1.2:i===1?Math.PI*1.7:Math.PI*0.3;
+        const lx=x1+65*Math.cos(a),ly=y1+65*Math.sin(a);
+        h+=`<ellipse cx="${lx.toFixed(0)}" cy="${ly.toFixed(0)}" rx="22" ry="22" fill="none" stroke="${C[i]}" stroke-width="2.5"/>`;
+        h+=`<text x="${lx.toFixed(0)}" y="${(ly+36).toFixed(0)}" text-anchor="middle" fill="${C[i]}" font-size="13" font-family="DM Mono,monospace" font-weight="700">${(p*100).toFixed(0)}%</text>`;
+        return;
+      }
+      const dx=x2-x1,dy=y2-y1,dist=Math.hypot(dx,dy);
+      const off=-22;
+      const px=(-dy/dist)*off,py=(dx/dist)*off;
+      const sx=x1+dx/dist*R+px,sy=y1+dy/dist*R+py;
+      const ex=x2-dx/dist*R+px,ey=y2-dy/dist*R+py;
+      const cpx=(sx+ex)/2+px*0.4,cpy=(sy+ey)/2+py*0.4;
+      h+=`<path d="M${sx.toFixed(1)} ${sy.toFixed(1)} Q${cpx.toFixed(1)} ${cpy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}" fill="none" stroke="${C[j]}" stroke-width="${1+p*3}" opacity="${0.4+p*0.6}"/>`;
+      const mx=sx*0.35+cpx*0.3+ex*0.35,my=sy*0.35+cpy*0.3+ey*0.35;
+      h+=`<rect x="${(mx-16).toFixed(0)}" y="${(my-11).toFixed(0)}" width="32" height="18" rx="4" fill="#111628"/>`;
+      h+=`<text x="${mx.toFixed(0)}" y="${(my+4).toFixed(0)}" text-anchor="middle" fill="${C[j]}" font-size="12" font-family="DM Mono,monospace" font-weight="700">${(p*100).toFixed(0)}%</text>`;
+    });
+  });
+  // nodes
+  npos.forEach(([x,y],i)=>{
+    const active=i===cur;
+    h+=`<circle cx="${x}" cy="${y}" r="${active?R+5:R}" fill="${active?'rgba('+[...Array(3)].map((_,k)=>parseInt(C[i].slice(1+k*2,3+k*2),16)).join(',')+',.2)':'rgba(0,0,0,.3)'}" stroke="${C[i]}" stroke-width="${active?4:2.5}"/>`;
+    h+=`<text x="${x}" y="${y-6}" text-anchor="middle" fill="${C[i]}" font-size="18" font-family="Syne,sans-serif" font-weight="800">${N[i].split('')[0]}</text>`;
+    h+=`<text x="${x}" y="${y+14}" text-anchor="middle" fill="${C[i]}" font-size="10" font-family="Syne,sans-serif" font-weight="700">${N[i]}</text>`;
+  });
+  svg.innerHTML=h;
+}
+
+renderSliders(); updateUI();
+</script>
+</body></html>

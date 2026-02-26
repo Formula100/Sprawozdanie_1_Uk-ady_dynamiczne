@@ -1,0 +1,227 @@
+<!DOCTYPE html><html lang="pl"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Zad. 4 — Rowerzysta i pogoda</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080e1e;--card:#0e1830;--bord:#162040;--sun:#ffc840;--rain:#60b0ff;--mu:#506080;--tx:#dce8ff}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:0 0 80px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 600px 400px at 30% 30%,rgba(255,200,60,.05),transparent 70%),radial-gradient(ellipse 600px 500px at 70% 60%,rgba(60,140,255,.05),transparent 70%);pointer-events:none}
+.page{max-width:800px;margin:0 auto;padding:0 20px;position:relative}
+header{padding:48px 0 36px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:28px}
+.badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--sun);padding:4px 14px;border:1px solid rgba(255,200,64,.3);border-radius:100px;display:inline-block;margin-bottom:16px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(24px,5vw,40px);font-weight:900;line-height:1.1;margin-bottom:8px}
+h1 span{color:var(--sun)}
+.sub{color:var(--mu);font-size:14px}
+.card{background:var(--card);border:1.5px solid var(--bord);border-radius:20px;padding:26px;margin-bottom:18px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;margin-bottom:16px}
+.story{background:rgba(255,200,64,.05);border:1.5px solid rgba(255,200,64,.15);border-radius:16px;padding:22px;margin-bottom:18px}
+.story p{font-size:14px;line-height:1.8;color:#d0c880;font-style:italic}
+.story strong{color:#ffe8a0;font-style:normal}
+/* weather selector */
+.weather-row{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.w-btn{flex:1;min-width:120px;padding:20px 14px;border-radius:16px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.02);text-align:center;cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.w-btn.active-sun{border-color:var(--sun);background:rgba(255,200,64,.1);transform:scale(1.04)}
+.w-btn.active-rain{border-color:var(--rain);background:rgba(96,176,255,.1);transform:scale(1.04)}
+.w-btn-icon{font-size:48px;display:block;margin-bottom:8px}
+.w-btn-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.w-btn-sub{font-size:12px;color:var(--mu);margin-top:4px}
+/* probability display */
+.prob-2up{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.p-box{border-radius:16px;padding:20px;text-align:center;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+.p-box-sun{background:rgba(255,200,64,.07);border:2px solid rgba(255,200,64,.2)}
+.p-box-rain{background:rgba(96,176,255,.07);border:2px solid rgba(96,176,255,.2)}
+.p-icon{font-size:48px;display:block;margin-bottom:10px}
+.p-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.p-val{font-family:'Syne',sans-serif;font-size:44px;font-weight:900;line-height:1}
+.p-bar{height:8px;background:rgba(255,255,255,.06);border-radius:100px;margin-top:12px;overflow:hidden}
+.p-fill{height:100%;border-radius:100px;transition:width .7s cubic-bezier(.34,1.56,.64,1)}
+/* sliders to customize P */
+.sl-row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.sl-label{width:180px;font-size:13px;font-weight:700;font-family:'DM Mono',monospace}
+.sl-track{flex:1;position:relative;height:8px;background:rgba(255,255,255,.06);border-radius:100px}
+.sl-fill{height:100%;border-radius:100px;transition:width .3s;position:absolute;inset:0 auto 0 0}
+input[type=range]{position:absolute;inset:0;width:100%;height:100%;-webkit-appearance:none;background:transparent;cursor:pointer;z-index:3}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px rgba(0,0,0,.5);cursor:pointer}
+.sl-val{width:46px;text-align:right;font-family:'DM Mono',monospace;font-size:14px;font-weight:700}
+/* matrix */
+.mat-2x2{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;margin:12px 0;align-items:center}
+.mat-cell{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;text-align:center;padding:12px 10px;border-radius:10px}
+.mat-head{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--mu);text-align:center;padding:4px}
+/* simulation */
+.sim-day{display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.06);margin:6px 0;transition:all .3s}
+.sim-day.active{border-color:rgba(255,200,64,.3);background:rgba(255,200,64,.05)}
+.sim-day-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:1px;width:90px}
+.sim-day-icon{font-size:28px}
+.sim-day-probs{flex:1;font-family:'DM Mono',monospace;font-size:13px}
+.btn{padding:10px 22px;border-radius:100px;border:2px solid var(--sun);background:transparent;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:var(--tx);transition:all .18s;margin:3px;letter-spacing:.3px}
+.btn:hover,.btn.fill{background:var(--sun);color:var(--bg);transform:scale(1.04)}
+.tape{display:flex;gap:5px;flex-wrap:wrap;min-height:44px;padding:10px;background:rgba(255,255,255,.02);border-radius:12px;align-items:center;margin:10px 0;border:1px solid var(--bord)}
+.dot{font-size:26px;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.info-bar{font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;background:rgba(96,255,200,.04);border:1px solid rgba(96,255,200,.12);border-radius:10px;margin-top:8px;min-height:36px}
+</style>
+</head><body>
+<div class="page">
+<header>
+  <div class="badge">ZADANIE 4</div>
+  <h1>Rowerzysta i <span>pogoda</span></h1>
+  <div class="sub">Dwustanowy łańcuch Markowa: Słonecznie (1) / Deszczowo (2)</div>
+</header>
+
+<div class="story">
+  <p>🚲 <strong>Historyjka:</strong> Rowerzysta dojeżdża codziennie do pracy i musi zdecydować: <strong>wziąć kurtkę</strong> czy nie. Nie wierzy prognozom z internetu. Jego zasada: <em>"jeśli wczoraj padało — dziś też pewnie będzie"</em>. Nie pamięta pogody sprzed tygodnia — <strong>liczy się tylko wczoraj</strong>. Czasem wygląda komicznie: po deszczowych dniach jedzie w pełnym stroju, a nagle wychodzi słońce… Model Markowa! Przyszłość zależy wyłącznie od bieżącego stanu.</p>
+</div>
+
+<div class="card">
+  <div class="card-title">🎛️ Ustaw prawdopodobieństwa przejścia</div>
+  <div class="sl-row">
+    <div class="sl-label" style="color:var(--sun)">☀ Słoneczny→Słoneczny (p11)</div>
+    <div class="sl-track"><div class="sl-fill" id="sf11" style="background:var(--sun)"></div><input type="range" id="sl11" min="1" max="99" value="70" oninput="updateP()"></div>
+    <div class="sl-val" style="color:var(--sun)" id="v11">70%</div>
+  </div>
+  <div class="sl-row">
+    <div class="sl-label" style="color:var(--rain)">🌧 Deszczowy→Słoneczny (p21)</div>
+    <div class="sl-track"><div class="sl-fill" id="sf21" style="background:var(--rain)"></div><input type="range" id="sl21" min="1" max="99" value="40" oninput="updateP()"></div>
+    <div class="sl-val" style="color:var(--rain)" id="v21">40%</div>
+  </div>
+  <div style="font-size:12px;color:var(--mu);margin-top:8px">p12 = 1−p11,  p22 = 1−p21  (każdy wiersz sumuje się do 100%)</div>
+</div>
+
+<div class="card">
+  <div class="card-title">🌤️ Pogoda dziś → jutro</div>
+  <div class="weather-row">
+    <div class="w-btn active-sun" id="wb-sun" onclick="setToday('sun')">
+      <span class="w-btn-icon">☀️</span>
+      <div class="w-btn-label" style="color:var(--sun)">Słonecznie</div>
+      <div class="w-btn-sub">kliknij żeby wybrać</div>
+    </div>
+    <div class="w-btn" id="wb-rain" onclick="setToday('rain')">
+      <span class="w-btn-icon">🌧️</span>
+      <div class="w-btn-label" style="color:var(--rain)">Deszczowo</div>
+      <div class="w-btn-sub">kliknij żeby wybrać</div>
+    </div>
+  </div>
+  <div style="font-size:13px;color:var(--mu);margin-bottom:10px">Jutro będzie…</div>
+  <div class="prob-2up">
+    <div class="p-box p-box-sun">
+      <span class="p-icon">☀️</span>
+      <div class="p-label" style="color:var(--sun)">Słonecznie</div>
+      <div class="p-val" style="color:var(--sun)" id="p-sun-val">—</div>
+      <div class="p-bar"><div class="p-fill" id="p-sun-bar" style="background:var(--sun)"></div></div>
+    </div>
+    <div class="p-box p-box-rain">
+      <span class="p-icon">🌧️</span>
+      <div class="p-label" style="color:var(--rain)">Deszczowo</div>
+      <div class="p-val" style="color:var(--rain)" id="p-rain-val">—</div>
+      <div class="p-bar"><div class="p-fill" id="p-rain-bar" style="background:var(--rain)"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">📐 Macierz przejścia P</div>
+  <div class="mat-2x2" id="mat-out"></div>
+  <div style="font-size:12px;color:var(--mu);margin-top:8px">Każdy wiersz to rozkład prawdopodobieństwa — sumuje się do 100%</div>
+</div>
+
+<div class="card">
+  <div class="card-title">📅 Symulacja — kolejne dni</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <button class="btn fill" onclick="simStep()">▶ Następny dzień</button>
+    <button class="btn" onclick="simWeek()">📅 Cały tydzień</button>
+    <button class="btn" onclick="simReset()">↺ Reset</button>
+  </div>
+  <div class="tape" id="tape"><span style="color:var(--mu);font-size:13px">Kliknij "Następny dzień"…</span></div>
+  <div class="info-bar" id="info-bar">— kliknij powyżej żeby symulować</div>
+</div>
+
+<div class="card">
+  <div class="card-title">⚖️ Rozkład stacjonarny</div>
+  <div style="font-family:'DM Mono',monospace;font-size:13px;line-height:2.2">
+    <div style="margin-bottom:6px">πP = π,  π₁+π₂ = 1</div>
+    <div>π₁ = p₂₁ / (p₁₂ + p₂₁) = <span id="pi1-val" style="color:var(--sun);font-weight:700">—</span></div>
+    <div>π₂ = p₁₂ / (p₁₂ + p₂₁) = <span id="pi2-val" style="color:var(--rain);font-weight:700">—</span></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:12px;height:12px;border-radius:100px;overflow:hidden">
+    <div id="pi1-bar" style="background:var(--sun);transition:flex .8s;border-radius:100px 0 0 100px;flex:0.571"></div>
+    <div id="pi2-bar" style="background:var(--rain);transition:flex .8s;border-radius:0 100px 100px 0;flex:0.429"></div>
+  </div>
+</div>
+</div>
+
+<script>
+let p11=0.70, p21=0.40, today='sun', simState=0, simHist=[];
+const P=()=>[[p11,1-p11],[p21,1-p21]];
+
+function updateP(){
+  p11=document.getElementById('sl11').value/100;
+  p21=document.getElementById('sl21').value/100;
+  document.getElementById('sf11').style.width=(p11*100)+'%';
+  document.getElementById('sf21').style.width=(p21*100)+'%';
+  document.getElementById('v11').textContent=(p11*100).toFixed(0)+'%';
+  document.getElementById('v21').textContent=(p21*100).toFixed(0)+'%';
+  buildMatrix(); updateProbs(); updateStationary();
+}
+
+function setToday(s){
+  today=s; simState=s==='sun'?0:1;
+  document.getElementById('wb-sun').className='w-btn '+(s==='sun'?'active-sun':'');
+  document.getElementById('wb-rain').className='w-btn '+(s==='rain'?'active-rain':'');
+  updateProbs();
+}
+
+function updateProbs(){
+  const mat=P(); const i=today==='sun'?0:1;
+  const ps=mat[i][0], pr=mat[i][1];
+  document.getElementById('p-sun-val').textContent=(ps*100).toFixed(0)+'%';
+  document.getElementById('p-rain-val').textContent=(pr*100).toFixed(0)+'%';
+  document.getElementById('p-sun-bar').style.width=(ps*100)+'%';
+  document.getElementById('p-rain-bar').style.width=(pr*100)+'%';
+}
+
+function buildMatrix(){
+  const mat=P();
+  const h=`
+    <div class="mat-head"></div>
+    <div class="mat-head" style="color:var(--sun)">☀ Jutro słonecznie</div>
+    <div class="mat-head" style="color:var(--rain)">🌧 Jutro deszczowo</div>
+    <div class="mat-head" style="color:var(--sun)">☀ Dziś słonecznie</div>
+    <div class="mat-cell" style="background:rgba(255,200,64,.12);color:var(--sun)">${(mat[0][0]*100).toFixed(0)}%</div>
+    <div class="mat-cell" style="background:rgba(96,176,255,.08);color:var(--rain)">${(mat[0][1]*100).toFixed(0)}%</div>
+    <div class="mat-head" style="color:var(--rain)">🌧 Dziś deszczowo</div>
+    <div class="mat-cell" style="background:rgba(255,200,64,.08);color:var(--sun)">${(mat[1][0]*100).toFixed(0)}%</div>
+    <div class="mat-cell" style="background:rgba(96,176,255,.12);color:var(--rain)">${(mat[1][1]*100).toFixed(0)}%</div>`;
+  document.getElementById('mat-out').innerHTML=h;
+}
+
+function updateStationary(){
+  const p12=1-p11, p22=1-p21;
+  const pi1=p21/(p12+p21), pi2=1-pi1;
+  document.getElementById('pi1-val').textContent=(pi1*100).toFixed(1)+'% słonecznych dni';
+  document.getElementById('pi2-val').textContent=(pi2*100).toFixed(1)+'% deszczowych dni';
+  document.getElementById('pi1-bar').style.flex=pi1;
+  document.getElementById('pi2-bar').style.flex=pi2;
+}
+
+function simStep(){
+  const mat=P(); const probs=mat[simState];
+  const next=Math.random()<probs[0]?0:1;
+  const prev=simState; simState=next; simHist.push(next);
+  const tape=document.getElementById('tape');
+  if(simHist.length===1) tape.innerHTML='';
+  const sp=document.createElement('span'); sp.className='dot'; sp.style.animationDelay='0s';
+  sp.textContent=next===0?'☀️':'🌧️'; tape.appendChild(sp); tape.scrollLeft=tape.scrollWidth;
+  const prevLabel=prev===0?'Słonecznie':'Deszczowo';
+  const nextLabel=next===0?'Słonecznie':'Deszczowo';
+  const nextCol=next===0?'var(--sun)':'var(--rain)';
+  document.getElementById('info-bar').innerHTML=
+    `Wczoraj: ${prev===0?'☀️':'🌧️'} <strong>${prevLabel}</strong> → Dziś: <strong style="color:${nextCol}">${next===0?'☀️':'🌧️'} ${nextLabel}</strong>  |  p = <strong style="color:${nextCol};font-size:15px">${(probs[next]*100).toFixed(0)}%</strong>`;
+}
+
+function simWeek(){for(let i=0;i<7;i++) setTimeout(simStep,i*220);}
+function simReset(){simState=today==='sun'?0:1;simHist=[];document.getElementById('tape').innerHTML='<span style="color:var(--mu);font-size:13px">Kliknij "Następny dzień"…</span>';document.getElementById('info-bar').textContent='— kliknij powyżej żeby symulować';}
+
+updateP(); setToday('sun');
+</script>
+</body></html>

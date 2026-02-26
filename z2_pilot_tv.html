@@ -1,0 +1,182 @@
+<!DOCTYPE html><html lang="pl"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Zad. 2 — Pilot TV</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0e0800;--card:#1a1200;--bord:#2e2000;--acc:#ffc040;--a2:#ff8040;--a3:#40e0a0;--mu:#806040;--tx:#fff4d8}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:0 0 80px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 700px 500px at 50% 20%,rgba(255,190,50,.07),transparent 70%);pointer-events:none}
+.page{max-width:800px;margin:0 auto;padding:0 20px;position:relative}
+header{padding:48px 0 36px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:32px}
+.badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--acc);padding:4px 14px;border:1px solid rgba(255,192,64,.35);border-radius:100px;display:inline-block;margin-bottom:16px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(26px,5vw,42px);font-weight:900;line-height:1.1;margin-bottom:8px}
+h1 span{color:var(--acc)}
+.sub{color:var(--mu);font-size:14px}
+.card{background:var(--card);border:1.5px solid var(--bord);border-radius:20px;padding:26px;margin-bottom:18px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;margin-bottom:16px}
+.story{background:rgba(255,192,64,.06);border:1.5px solid rgba(255,192,64,.18);border-radius:16px;padding:22px;margin-bottom:18px}
+.story p{font-size:14px;line-height:1.8;color:#e8d8a0;font-style:italic}
+.story strong{color:#ffe8b0;font-style:normal}
+/* N selector */
+.n-row{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.n-big{font-family:'Syne',sans-serif;font-size:52px;font-weight:900;color:var(--acc);line-height:1}
+.n-label{font-family:'DM Mono',monospace;font-size:12px;color:var(--mu);letter-spacing:2px}
+input[type=range].main-sl{flex:1;min-width:100px;height:8px;-webkit-appearance:none;background:rgba(255,192,64,.15);border-radius:100px;cursor:pointer}
+input[type=range].main-sl::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:var(--acc);border-radius:50%;box-shadow:0 0 10px rgba(255,192,64,.5);cursor:pointer}
+/* channels */
+.ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin:14px 0}
+.ch-card{background:rgba(255,255,255,.03);border:2px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 8px;text-align:center;transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:default}
+.ch-card.current{transform:scale(1.1);box-shadow:0 0 24px var(--cc)}
+.ch-name{font-family:'Syne',sans-serif;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.ch-icon{font-size:26px;display:block;margin:4px 0}
+.ch-prob{font-family:'DM Mono',monospace;font-size:17px;font-weight:700;margin-top:4px}
+.ch-eq{font-size:10px;color:var(--mu);margin-top:2px}
+/* freq bars */
+.freq-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.fr-name{width:70px;font-size:12px;font-weight:700;font-family:'DM Mono',monospace}
+.fr-bars{flex:1;display:flex;flex-direction:column;gap:3px}
+.bar-wrap{height:6px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden}
+.bar-fill{height:100%;border-radius:100px;transition:width .5s cubic-bezier(.34,1.56,.64,1)}
+.fr-pct{width:44px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;font-weight:700}
+.fr-theory{width:58px;text-align:right;font-size:10px;color:var(--mu)}
+/* matrix */
+.mat{border-collapse:collapse;width:100%}
+.mat th{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--mu);padding:8px 10px;border:1px solid var(--bord)}
+.mat td{padding:9px 12px;text-align:center;font-family:'DM Mono',monospace;font-size:15px;font-weight:700;border:1px solid var(--bord)}
+/* btn */
+.btn{padding:10px 22px;border-radius:100px;border:2px solid var(--acc);background:transparent;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:var(--tx);transition:all .18s;margin:3px;letter-spacing:.3px}
+.btn:hover,.btn.fill{background:var(--acc);color:var(--bg);transform:scale(1.04)}
+/* tape */
+.tape{display:flex;gap:5px;flex-wrap:wrap;min-height:46px;padding:10px;background:rgba(255,255,255,.02);border-radius:12px;align-items:center;margin:10px 0;border:1px solid var(--bord);overflow:hidden}
+.dot{font-size:24px;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.info-bar{font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;background:rgba(64,224,160,.05);border:1px solid rgba(64,224,160,.15);border-radius:10px;margin-top:8px;min-height:36px}
+.highlight-box{background:rgba(255,192,64,.08);border:1.5px solid rgba(255,192,64,.25);border-radius:12px;padding:14px;margin-top:12px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;color:var(--a3)}
+</style>
+</head><body>
+<div class="page">
+<header>
+  <div class="badge">ZADANIE 2</div>
+  <h1>Pilot TV z <span>zepsutym przyciskiem</span></h1>
+  <div class="sub">P^n = P — potęgowanie macierzy jednorodnej nie zmienia jej postaci</div>
+</header>
+
+<div class="story">
+  <p>📺 <strong>Historyjka:</strong> Pilot telewizora ma zepsuty przycisk zmiany kanału. Zamiast przełączać na następny program, pilot wybiera <em>całkowicie losowy kanał</em> spośród wszystkich dostępnych — każdy z równym prawdopodobieństwem <strong>1/N</strong>. Nie ma znaczenia, co oglądaliśmy wcześniej — każde kliknięcie to nowy, niezależny wybór. Matematycznie: P = (1/N)·J, i P² = P³ = … = P. System „zapomina" historię po pierwszym kroku.</p>
+</div>
+
+<div class="card">
+  <div class="card-title">📺 Liczba kanałów w telewizorze</div>
+  <div class="n-row">
+    <div>
+      <div class="n-label">KANAŁÓW N =</div>
+      <div class="n-big" id="n-disp">5</div>
+    </div>
+    <input type="range" class="main-sl" id="n-sl" min="2" max="8" value="5" oninput="setN(+this.value)">
+    <div>
+      <div class="n-label">P(każdy kanał)</div>
+      <div style="font-family:'DM Mono',monospace;font-size:24px;color:var(--acc);font-weight:700" id="p-disp">1/5 = 20%</div>
+    </div>
+  </div>
+  <div class="ch-grid" id="ch-grid"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">🎮 Klikaj pilot!</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <button class="btn fill" onclick="clickRemote()">📺 KLIK!</button>
+    <button class="btn" onclick="click10()">× 10 kliknięć</button>
+    <button class="btn" onclick="resetAll()">↺ Reset</button>
+  </div>
+  <div class="tape" id="tape"><span style="color:var(--mu);font-size:13px">Naciśnij KLIK…</span></div>
+  <div class="info-bar" id="info-bar">— naciśnij przycisk pilota</div>
+</div>
+
+<div class="card">
+  <div class="card-title">📊 Empiryczne częstości vs teoria (1/N)</div>
+  <div style="font-size:12px;color:var(--mu);margin-bottom:10px">Jasnopasek = teoria (1/N),  pełny pasek = empiria</div>
+  <div id="freq-bars"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">🧮 Macierz P (zawsze taka sama — P^n = P!)</div>
+  <div style="overflow-x:auto"><div id="mat-out"></div></div>
+  <div class="highlight-box">
+    P = (1/N)·J  →  P² = (1/N)²·J·J = (1/N)²·N·J = (1/N)·J = P<br>
+    Indukcja: P^n = P  dla każdego n ∈ ℕ  ✓<br>
+    <span style="color:var(--acc)">Rozkład stacjonarny od razu po 1. kroku!</span>
+  </div>
+</div>
+</div>
+
+<script>
+const CH_N=['TVN','Polsat','TVP1','Canal+','HBO','Disco','Nat Geo','4Fun'];
+const CH_I=['📺','🎬','📰','🎵','🌍','💃','🦁','🎤'];
+const CH_C=['#ff6060','#ff9040','#60c0ff','#60ff90','#c060ff','#ff60d0','#40ffff','#ffe060'];
+let N=5,cur=0,clicks=0,cnt=[];
+
+function setN(n){
+  N=n; cur=0; clicks=0; cnt=new Array(N).fill(0);
+  document.getElementById('n-disp').textContent=N;
+  document.getElementById('p-disp').textContent='1/'+N+' = '+(100/N).toFixed(1)+'%';
+  buildChannels(); buildFreqBars(); buildMatrix();
+  document.getElementById('tape').innerHTML='<span style="color:var(--mu);font-size:13px">Naciśnij KLIK…</span>';
+  document.getElementById('info-bar').textContent='— naciśnij przycisk pilota';
+}
+
+function buildChannels(){
+  document.getElementById('ch-grid').innerHTML=Array.from({length:N},(_,i)=>`
+    <div class="ch-card ${i===cur?'current':''}" style="--cc:${CH_C[i%8]};border-color:${i===cur?CH_C[i%8]:'rgba(255,255,255,.07)'}">
+      <div class="ch-name" style="color:${CH_C[i%8]}">${CH_N[i%8]}</div>
+      <span class="ch-icon">${CH_I[i%8]}</span>
+      <div class="ch-prob" style="color:${CH_C[i%8]}">${(100/N).toFixed(1)}%</div>
+      <div class="ch-eq" style="color:${i===cur?CH_C[i%8]:'var(--mu)'}">${i===cur?'AKTUALNY':'= 1/'+N}</div>
+    </div>`).join('');
+}
+
+function clickRemote(){
+  const prev=cur; cur=Math.floor(Math.random()*N); clicks++; cnt[cur]++;
+  const tape=document.getElementById('tape');
+  if(clicks===1) tape.innerHTML='';
+  const sp=document.createElement('span'); sp.className='dot'; sp.style.animationDelay='0s';
+  sp.textContent=CH_I[cur%8]; tape.appendChild(sp); tape.scrollLeft=tape.scrollWidth;
+  buildChannels(); buildFreqBars();
+  document.getElementById('info-bar').innerHTML=`Poprzedni: ${CH_I[prev%8]} ${CH_N[prev%8]}  →  Teraz: <strong style="color:${CH_C[cur%8]}">${CH_I[cur%8]} ${CH_N[cur%8]}</strong>  |  p = <strong style="font-size:16px;color:${CH_C[cur%8]}">${(100/N).toFixed(1)}%</strong>  (zawsze to samo — brak pamięci!)`;
+}
+
+function click10(){for(let i=0;i<10;i++) setTimeout(clickRemote,i*110);}
+function resetAll(){clicks=0;cnt=new Array(N).fill(0);cur=0;buildChannels();buildFreqBars();document.getElementById('tape').innerHTML='<span style="color:var(--mu);font-size:13px">Naciśnij KLIK…</span>';document.getElementById('info-bar').textContent='— naciśnij przycisk pilota';}
+
+function buildFreqBars(){
+  const tot=clicks||1;
+  document.getElementById('freq-bars').innerHTML=Array.from({length:N},(_,i)=>{
+    const emp=(cnt[i]/tot*100);
+    const theory=100/N;
+    return `<div class="freq-row">
+      <div class="fr-name" style="color:${CH_C[i%8]}">${CH_N[i%8]}</div>
+      <div class="fr-bars">
+        <div class="bar-wrap"><div class="bar-fill" style="width:${theory}%;background:${CH_C[i%8]};opacity:.3"></div></div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${emp}%;background:${CH_C[i%8]}"></div></div>
+      </div>
+      <div class="fr-pct" style="color:${CH_C[i%8]}">${emp.toFixed(1)}%</div>
+      <div class="fr-theory">→ ${theory.toFixed(1)}%</div>
+    </div>`;
+  }).join('');
+}
+
+function buildMatrix(){
+  const v=(100/N).toFixed(1)+'%';
+  let h=`<table class="mat"><tr><th></th>${Array.from({length:N},(_,j)=>`<th style="color:${CH_C[j%8]}">${CH_N[j%8]}</th>`).join('')}</tr>`;
+  for(let i=0;i<N;i++){
+    h+=`<tr><th style="color:${CH_C[i%8]}">${CH_N[i%8]}</th>`;
+    for(let j=0;j<N;j++) h+=`<td style="color:${CH_C[j%8]};background:rgba(${parseInt(CH_C[j%8].slice(1,3),16)},${parseInt(CH_C[j%8].slice(3,5),16)},${parseInt(CH_C[j%8].slice(5,7),16)},.08)">${v}</td>`;
+    h+='</tr>';
+  }
+  h+='</table>';
+  document.getElementById('mat-out').innerHTML=h;
+}
+
+setN(5);
+</script>
+</body></html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="pl"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Zad. 3 — Plansza mod 6</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#120818;--card:#1c0e24;--bord:#381450;--acc:#e060ff;--a2:#ff8040;--a3:#60ffe0;--mu:#906090;--tx:#f0d8ff}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:0 0 80px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 600px 500px at 40% 30%,rgba(200,60,255,.06),transparent 70%),radial-gradient(ellipse 500px 400px at 80% 70%,rgba(60,200,255,.04),transparent 70%);pointer-events:none}
+.page{max-width:800px;margin:0 auto;padding:0 20px;position:relative}
+header{padding:48px 0 36px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:28px}
+.badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--acc);padding:4px 14px;border:1px solid rgba(200,80,255,.4);border-radius:100px;display:inline-block;margin-bottom:16px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(24px,5vw,40px);font-weight:900;line-height:1.1;margin-bottom:8px}
+h1 span{color:var(--acc)}
+.sub{color:var(--mu);font-size:14px}
+.card{background:var(--card);border:1.5px solid var(--bord);border-radius:20px;padding:26px;margin-bottom:18px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;margin-bottom:16px}
+.story{background:rgba(200,80,255,.06);border:1.5px solid rgba(200,80,255,.18);border-radius:16px;padding:22px;margin-bottom:18px}
+.story p{font-size:14px;line-height:1.8;color:#d8b8f0;font-style:italic}
+.story strong{color:#ecd8ff;font-style:normal}
+/* board SVG */
+#board-svg{width:100%;max-width:380px;height:380px;display:block;margin:0 auto}
+/* dice */
+.dice-area{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin:14px 0}
+.dice-face{font-size:72px;transition:transform .25s cubic-bezier(.34,1.56,.64,1);cursor:pointer;user-select:none}
+.dice-face:active{transform:scale(0.85)!important}
+.dice-info{flex:1;min-width:140px}
+.dice-val{font-family:'Syne',sans-serif;font-size:36px;font-weight:900}
+.dice-eq{font-family:'DM Mono',monospace;font-size:14px;margin:4px 0;color:var(--a3)}
+/* state strip */
+.state-strip{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.st{flex:1;min-width:70px;background:rgba(255,255,255,.03);border:2px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 6px;text-align:center;transition:all .3s}
+.st.current{transform:scale(1.12)}
+.st-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:900}
+.st-pct{font-family:'DM Mono',monospace;font-size:12px;margin-top:2px}
+/* freq bars */
+.freq-row{display:flex;align-items:center;gap:10px;margin:5px 0}
+.fr-lbl{width:60px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700}
+.bar-w{flex:1;height:10px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden}
+.bar-f{height:100%;border-radius:100px;transition:width .5s cubic-bezier(.34,1.56,.64,1)}
+.fr-pct{width:44px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;font-weight:700}
+/* btn */
+.btn{padding:10px 22px;border-radius:100px;border:2px solid var(--acc);background:transparent;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:var(--tx);transition:all .18s;margin:3px;letter-spacing:.3px}
+.btn:hover,.btn.fill{background:var(--acc);color:var(--bg);transform:scale(1.04)}
+.tape{display:flex;gap:5px;flex-wrap:wrap;min-height:44px;padding:10px;background:rgba(255,255,255,.02);border-radius:12px;align-items:center;margin:10px 0;border:1px solid var(--bord)}
+.dot{font-size:22px;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.info-bar{font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;background:rgba(96,255,224,.05);border:1px solid rgba(96,255,224,.15);border-radius:10px;margin-top:8px;min-height:36px}
+.prob-table{background:rgba(255,255,255,.02);border-radius:12px;padding:14px;border:1px solid var(--bord);font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;color:var(--a3)}
+</style>
+</head><body>
+<div class="page">
+<header>
+  <div class="badge">ZADANIE 3</div>
+  <h1>Plansza <span>kołowa mod 6</span></h1>
+  <div class="sub">Y_n = (X₁² + … + Xₙ²) mod 6 — rzucaj kostką, przesuwaj pionka!</div>
+</header>
+
+<div class="story">
+  <p>🎲 <strong>Historyjka:</strong> Grupa znajomych na imprezie gra w prostą grę: okrągła plansza z <strong>6 polami</strong> (0–5). Po każdym rzucie kostką przesuwają pionka o X² kroków i liczą modulo 6. <em>Nieważne ile razy rzucali</em> — liczy się tylko <strong>aktualna pozycja</strong>. Co więcej, po każdym rzucie można trafić na dowolne pole z <strong>jednaką szansą 1/6</strong>. To łańcuch Markowa: przeszłość zapomniana, przyszłość zależy tylko od teraz.</p>
+</div>
+
+<div class="card">
+  <div class="card-title">🎯 Plansza i aktualny stan</div>
+  <svg id="board-svg" viewBox="0 0 380 380"></svg>
+  <div class="state-strip" id="state-strip"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">🎲 Rzuć kostką!</div>
+  <div class="dice-area">
+    <div class="dice-face" id="dice-face" onclick="throwDice()">⚀</div>
+    <div class="dice-info">
+      <div style="font-size:13px;color:var(--mu);margin-bottom:4px">Wyrzucono:</div>
+      <div class="dice-val" id="dice-val" style="color:var(--acc)">—</div>
+      <div class="dice-eq" id="dice-eq">X² mod 6 = ?</div>
+      <div style="font-size:13px;color:var(--mu);margin-top:6px">Stan Y_n:</div>
+      <div style="font-family:'Syne',sans-serif;font-size:48px;font-weight:900;color:var(--acc)" id="yn-val">0</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    <button class="btn fill" onclick="throwDice()">🎲 Rzuć!</button>
+    <button class="btn" onclick="throw10()">× 10 rzutów</button>
+    <button class="btn" onclick="throw100()">× 100</button>
+    <button class="btn" onclick="resetGame()">↺ Reset</button>
+  </div>
+  <div style="font-size:12px;color:var(--mu);margin-bottom:6px">Historia stanów Y_n:</div>
+  <div class="tape" id="tape"><span style="color:var(--mu);font-size:13px">Kliknij 🎲…</span></div>
+  <div class="info-bar" id="info-bar">— rzuć kostką żeby zobaczyć przejście</div>
+</div>
+
+<div class="card">
+  <div class="card-title">📊 Częstości stanów (powinny zbiegać do 1/6 ≈ 16.7%)</div>
+  <div id="freq-bars"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">📐 Prawdopodobieństwa przejścia</div>
+  <div class="prob-table">
+    X² mod 6 przyjmuje wartości: 0(p=1/6), 1(p=2/6), 3(p=2/6), 4(p=1/6)<br>
+    1²=1  2²=4  3²=3  4²=4  5²=1  6²=0 mod 6<br>
+    <span style="color:var(--acc)">Macierz P: p_ij = 1/6 ≈ 16.7% dla wszystkich i,j</span><br>
+    Z każdego stanu → każdy stan z p = 1/6  ✓
+  </div>
+</div>
+</div>
+
+<script>
+const FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
+const SC=['#ff5070','#ff9040','#e0d040','#50e080','#40b0ff','#c040ff'];
+const SE=['🔴','🟠','🟡','🟢','🔵','🟣'];
+const FIELD_NAMES=['Pole 0','Pole 1','Pole 2','Pole 3','Pole 4','Pole 5'];
+let Yn=0, nThrows=0, cnt=new Array(6).fill(0);
+
+function drawBoard(){
+  const svg=document.getElementById('board-svg');
+  const cx=190,cy=190,R=145,Nr=46;
+  let h='';
+  // glow background
+  h+=`<circle cx="${cx}" cy="${cy}" r="165" fill="rgba(200,60,255,.04)" stroke="rgba(200,60,255,.1)" stroke-width="1"/>`;
+  // spokes
+  for(let i=0;i<6;i++){
+    const a=2*Math.PI*i/6-Math.PI/2;
+    const x1=cx+(R-Nr)*Math.cos(a), y1=cy+(R-Nr)*Math.sin(a);
+    const x2=cx+20*Math.cos(a), y2=cy+20*Math.sin(a);
+    h+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
+  }
+  // nodes
+  for(let i=0;i<6;i++){
+    const a=2*Math.PI*i/6-Math.PI/2;
+    const x=cx+R*Math.cos(a), y=cy+R*Math.sin(a);
+    const active=i===Yn;
+    const col=SC[i];
+    // glow
+    if(active) h+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${Nr+12}" fill="${col.replace('#','rgba(')}22" opacity="0.6"/>`;
+    h+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${active?Nr+4:Nr}" fill="${active?col.replace('#','rgba(')+(active?'33':'11')+')':`rgba(30,20,40,.8)`}" stroke="${col}" stroke-width="${active?4:2}"/>`;
+    h+=`<text x="${x.toFixed(1)}" y="${(y+10).toFixed(1)}" text-anchor="middle" fill="${col}" font-size="${active?28:22}" font-family="Syne,sans-serif" font-weight="900">${i}</text>`;
+    if(active) h+=`<text x="${x.toFixed(1)}" y="${(y+Nr+20).toFixed(1)}" text-anchor="middle" fill="${col}" font-size="11" font-family="DM Mono,monospace">TUTAJ</text>`;
+  }
+  // center
+  h+=`<circle cx="${cx}" cy="${cy}" r="28" fill="rgba(30,14,38,.9)" stroke="rgba(200,80,255,.3)" stroke-width="1.5"/>`;
+  h+=`<text x="${cx}" y="${cy-4}" text-anchor="middle" fill="#906090" font-size="10" font-family="DM Mono,monospace">Y_n=</text>`;
+  h+=`<text x="${cx}" y="${cy+14}" text-anchor="middle" fill="${SC[Yn]}" font-size="18" font-family="Syne,sans-serif" font-weight="900">${Yn}</text>`;
+  svg.innerHTML=h;
+}
+
+function buildStateStrip(){
+  document.getElementById('state-strip').innerHTML=Array.from({length:6},(_,i)=>`
+    <div class="st ${i===Yn?'current':''}" style="border-color:${i===Yn?SC[i]:'rgba(255,255,255,.07)'}">
+      <div class="st-num" style="color:${SC[i]}">${i}</div>
+      <div class="st-pct" style="color:${SC[i]}">${nThrows?((cnt[i]/nThrows)*100).toFixed(0)+'%':'—'}</div>
+    </div>`).join('');
+}
+
+function throwDice(){
+  const x=Math.ceil(Math.random()*6);
+  const xsq=(x*x)%6;
+  const prevYn=Yn;
+  Yn=(Yn+xsq)%6; nThrows++; cnt[Yn]++;
+  const fd=document.getElementById('dice-face');
+  fd.textContent=FACES[x-1];
+  fd.style.transform='rotate('+(Math.random()*40-20)+'deg) scale(1.2)';
+  setTimeout(()=>fd.style.transform='rotate(0) scale(1)',250);
+  document.getElementById('dice-val').textContent='X = '+x;
+  document.getElementById('dice-eq').textContent=x+'^2 mod 6 = '+x*x+' mod 6 = '+xsq+' (Δ = +'+xsq+')';
+  document.getElementById('yn-val').textContent=Yn;
+  document.getElementById('yn-val').style.color=SC[Yn];
+  const tape=document.getElementById('tape');
+  if(nThrows===1) tape.innerHTML='';
+  const sp=document.createElement('span'); sp.className='dot'; sp.style.animationDelay='0s';
+  sp.textContent=SE[Yn]; tape.appendChild(sp); tape.scrollLeft=tape.scrollWidth;
+  document.getElementById('info-bar').innerHTML=
+    `Stan: ${prevYn} → rzut X=${x} → X²mod6=${xsq} → nowy stan: <strong style="color:${SC[Yn]};font-size:15px">${Yn}</strong>  |  p(tego przejścia) = <strong style="color:${SC[Yn]}">1/6 ≈ 16.7%</strong>`;
+  drawBoard(); buildStateStrip(); buildFreqBars();
+}
+
+function throw10(){for(let i=0;i<10;i++) setTimeout(throwDice,i*100);}
+function throw100(){for(let i=0;i<100;i++) setTimeout(throwDice,i*20);}
+function resetGame(){Yn=0;nThrows=0;cnt=new Array(6).fill(0);document.getElementById('dice-face').textContent='⚀';document.getElementById('dice-val').textContent='—';document.getElementById('dice-eq').textContent='X² mod 6 = ?';document.getElementById('yn-val').textContent='0';document.getElementById('yn-val').style.color=SC[0];document.getElementById('tape').innerHTML='<span style="color:var(--mu);font-size:13px">Kliknij 🎲…</span>';document.getElementById('info-bar').textContent='— rzuć kostką żeby zobaczyć przejście';drawBoard();buildStateStrip();buildFreqBars();}
+
+function buildFreqBars(){
+  const tot=nThrows||1;
+  document.getElementById('freq-bars').innerHTML=Array.from({length:6},(_,i)=>{
+    const emp=(cnt[i]/tot*100);
+    const theory=100/6;
+    return `<div class="freq-row">
+      <div class="fr-lbl" style="color:${SC[i]}">Stan ${i}</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+        <div class="bar-w"><div class="bar-f" style="width:${theory}%;background:${SC[i]};opacity:.3"></div></div>
+        <div class="bar-w"><div class="bar-f" style="width:${emp}%;background:${SC[i]}"></div></div>
+      </div>
+      <div class="fr-pct" style="color:${SC[i]}">${emp.toFixed(1)}%</div>
+      <div style="width:56px;text-align:right;font-size:11px;color:var(--mu)">→16.7%</div>
+    </div>`;
+  }).join('');
+}
+
+drawBoard(); buildStateStrip(); buildFreqBars();
+</script>
+</body></html>
