@@ -1,0 +1,202 @@
+<!DOCTYPE html><html lang="pl"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Zad. 7 — Stołówka akademicka</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#110820;--card:#1a1030;--bord:#2c1850;--acc:#c060ff;--a2:#ff9060;--grn:#60ffb0;--mu:#806090;--tx:#f0d8ff}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:0 0 80px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 700px 500px at 25% 30%,rgba(180,60,255,.07),transparent),radial-gradient(ellipse 600px 500px at 80% 70%,rgba(60,200,255,.04),transparent);pointer-events:none}
+.page{max-width:800px;margin:0 auto;padding:0 20px;position:relative}
+header{padding:44px 0 30px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:24px}
+.badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--acc);padding:4px 14px;border:1px solid rgba(192,96,255,.35);border-radius:100px;display:inline-block;margin-bottom:14px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(24px,5vw,40px);font-weight:900;line-height:1.1;margin-bottom:8px}
+h1 span{color:var(--acc)}
+.sub{color:var(--mu);font-size:14px}
+.card{background:var(--card);border:1.5px solid var(--bord);border-radius:20px;padding:24px;margin-bottom:16px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;margin-bottom:14px}
+.story{background:rgba(192,96,255,.06);border:1.5px solid rgba(192,96,255,.15);border-radius:16px;padding:20px;margin-bottom:16px}
+.story p{font-size:14px;line-height:1.8;color:#d0b8f0;font-style:italic}
+.story strong{color:#e8d0ff;font-style:normal}
+/* meals grid */
+.meals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:14px 0}
+.meal-card{background:rgba(255,255,255,.02);border:2px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 10px;text-align:center;transition:all .3s}
+.meal-card.current{transform:scale(1.1)}
+.mc-icon{font-size:34px;display:block;margin-bottom:6px}
+.mc-name{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.mc-pct{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;margin:3px 0}
+.mc-bar{height:5px;background:rgba(255,255,255,.06);border-radius:100px;margin-top:5px;overflow:hidden}
+.mc-fill{height:100%;border-radius:100px;transition:width .7s cubic-bezier(.34,1.56,.64,1)}
+/* matrix sliders */
+.mat-sl-group{margin-bottom:14px;padding:14px;background:rgba(255,255,255,.02);border-radius:12px;border:1px solid var(--bord)}
+.sl-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.sl-lbl{width:160px;font-size:12px;font-weight:700;font-family:'DM Mono',monospace}
+.sl-tr{flex:1;position:relative;height:6px;background:rgba(255,255,255,.06);border-radius:100px}
+.sl-fi{height:100%;border-radius:100px;transition:width .3s;position:absolute;inset:0 auto 0 0}
+input[type=range]{position:absolute;inset:0;width:100%;height:100%;-webkit-appearance:none;background:transparent;cursor:pointer;z-index:3}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 5px rgba(0,0,0,.5);cursor:pointer}
+.sl-val{width:38px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;font-weight:700}
+/* btn */
+.btn{padding:9px 20px;border-radius:100px;border:2px solid var(--acc);background:transparent;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:var(--tx);transition:all .18s;margin:3px}
+.btn:hover,.btn.fill{background:var(--acc);color:var(--bg);transform:scale(1.04)}
+.tape{display:flex;gap:5px;flex-wrap:wrap;min-height:44px;padding:10px;background:rgba(255,255,255,.02);border-radius:12px;align-items:center;margin:8px 0;border:1px solid var(--bord)}
+.dot{font-size:22px;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.inf{font-family:'DM Mono',monospace;font-size:12px;padding:8px 12px;background:rgba(96,255,176,.04);border:1px solid rgba(96,255,176,.1);border-radius:10px;margin-top:8px;min-height:34px}
+/* brouwer box */
+.brouwer-box{background:rgba(192,96,255,.05);border:1.5px solid rgba(192,96,255,.2);border-radius:14px;padding:18px;font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;color:var(--grn)}
+/* convergence */
+.conv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin:10px 0}
+.conv-cell{padding:10px 8px;border-radius:10px;text-align:center;border:1.5px solid;transition:all .4s;font-family:'DM Mono',monospace;font-size:11px}
+</style>
+</head><body>
+<div class="page">
+<header>
+  <div class="badge">ZADANIE 7</div>
+  <h1>Stołówka <span>akademicka</span></h1>
+  <div class="sub">Dla skończonej przestrzeni stanów zawsze istnieje rozkład stacjonarny π</div>
+</header>
+
+<div class="story">
+  <p>🍽️ <strong>Historyjka:</strong> Stołówka akademicka: codziennie studenci wybierają <strong>kotlet, makaron lub zupę</strong>. Preferencje zależą od wczorajszego obiadu. Na początku semestru chaos — ale po kilku tygodniach proporcje się stabilizują: <em>40% kotlet, 35% makaron, 25% zupa</em>. Konkretni klienci się zmieniają, ale <strong>globalna statystyka trwa</strong>. To właśnie rozkład stacjonarny!</p>
+</div>
+
+<div class="card">
+  <div class="card-title">🎛️ Macierz przejścia — preferencje studentów</div>
+  <div id="mat-sliders"></div>
+  <div style="font-size:11px;color:var(--mu);margin-top:6px">Każdy wiersz musi sumować się do 100% — normalizuję automatycznie</div>
+</div>
+
+<div class="card">
+  <div class="card-title">🍽️ Rozkład stacjonarny π (punkt stały T(x)=xP)</div>
+  <div class="meals-grid" id="meals-grid"></div>
+  <div style="height:10px;border-radius:100px;overflow:hidden;display:flex;margin:4px 0 12px" id="pi-bar-strip"></div>
+  <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--mu)">Weryfikacja: <span id="verify-out" style="color:var(--grn)">π*P = π ✓</span></div>
+</div>
+
+<div class="card">
+  <div class="card-title">🔄 Zbieżność z dowolnego startu → π</div>
+  <div style="font-size:12px;color:var(--mu);margin-bottom:8px">Start = (100%,0%,0%) → kolejne iteracje π⁽ⁿ⁾ = π⁽⁰⁾·Pⁿ</div>
+  <div class="conv-grid" id="conv-grid"></div>
+</div>
+
+
+<div class="card">
+  <div class="card-title">🎲 Symulacja zamówień w stołówce</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+    <button class="btn fill" onclick="simStep()">🍽️ Następny student</button>
+    <button class="btn" onclick="sim30()">× 30 studentów</button>
+    <button class="btn" onclick="simReset()">↺</button>
+  </div>
+  <div class="tape" id="tape"><span style="color:var(--mu);font-size:13px">Kliknij…</span></div>
+  <div class="inf" id="inf">—</div>
+</div>
+</div>
+
+<script>
+const MEALS=['Kotlet','Makaron','Zupa'];
+const ICONS=['🍖','🍝','🍲'];
+const MC=['#ff8080','#ffcc40','#60d0ff'];
+// Initial P - 3x3
+let P=[[0.50,0.30,0.20],[0.25,0.45,0.30],[0.30,0.25,0.45]];
+let simState=0,hist=[];
+
+function norm(row){const s=row.reduce((a,b)=>a+b)||1;return row.map(v=>v/s);}
+function matMul(A,B){const n=A.length;return A.map(r=>B[0].map((_,j)=>r.reduce((s,_,k)=>s+r[k]*B[k][j],0)));}
+function mulPv(v,M){return v.map((_,j)=>v.reduce((s,vi,i)=>s+vi*M[i][j],0));}
+function stationary(M){
+  let v=M[0].map((_,j)=>M.reduce((s,r)=>s+r[j],0)/M.length);
+  for(let i=0;i<200;i++) v=mulPv(v,M);
+  const s=v.reduce((a,b)=>a+b);return v.map(x=>x/s);
+}
+
+function buildSliders(){
+  let h='';
+  P.forEach((row,i)=>{
+    h+=`<div class="mat-sl-group" style="border-color:rgba(${parseInt(MC[i].slice(1,3),16)},${parseInt(MC[i].slice(3,5),16)},${parseInt(MC[i].slice(5),16)},.2)">
+      <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;color:${MC[i]};margin-bottom:6px">${ICONS[i]} ${MEALS[i]} →</div>`;
+    row.forEach((p,j)=>{
+      h+=`<div class="sl-row">
+        <div class="sl-lbl" style="color:${MC[j]}">→ ${MEALS[j]}</div>
+        <div class="sl-tr"><div class="sl-fi" id="sf${i}${j}" style="background:${MC[j]};width:${p*100}%"></div>
+          <input type="range" id="sl${i}${j}" min="1" max="99" value="${Math.round(p*100)}" oninput="onSl(${i},${j},+this.value)">
+        </div>
+        <div class="sl-val" style="color:${MC[j]}" id="sv${i}${j}">${(p*100).toFixed(0)}%</div>
+      </div>`;
+    });
+    const sum=row.reduce((a,b)=>a+b);
+    const ok=Math.abs(sum-1)<0.02;
+    h+=`<div style="font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:6px;display:inline-block;margin-top:4px;background:rgba(${ok?'96,255,176':'255,100,100'},.08);color:${ok?'#60ffb0':'#ff8080'};border:1px solid rgba(${ok?'96,255,176':'255,100,100'},.2)">Suma: ${(sum*100).toFixed(0)}% ${ok?'✓':'✗'}</div>
+    </div>`;
+  });
+  document.getElementById('mat-sliders').innerHTML=h;
+}
+
+function onSl(row,col,val){
+  P[row][col]=val/100;
+  const rest=1-P[row][col];
+  const others=P[row].map((v,j)=>j!==col?v:0);
+  const so=others.reduce((a,b)=>a+b)||0.001;
+  P[row].forEach((_,j)=>{if(j!==col) P[row][j]=Math.max(0,Math.min(1,others[j]/so*rest));});
+  updateAllUI();
+}
+
+function updateAllUI(){
+  P.forEach((row,i)=>row.forEach((p,j)=>{
+    const sf=document.getElementById('sf'+i+j); if(sf) sf.style.width=(p*100)+'%';
+    const sl=document.getElementById('sl'+i+j); if(sl) sl.value=Math.round(p*100);
+    const sv=document.getElementById('sv'+i+j); if(sv) sv.textContent=(p*100).toFixed(0)+'%';
+  }));
+  buildMealsGrid(); buildConvergence();
+}
+
+function buildMealsGrid(){
+  const pi=stationary(P);
+  document.getElementById('meals-grid').innerHTML=MEALS.map((m,i)=>`
+    <div class="meal-card ${i===simState?'current':''}" style="border-color:${i===simState?MC[i]:'rgba(255,255,255,.07)'}">
+      <span class="mc-icon">${ICONS[i]}</span>
+      <div class="mc-name" style="color:${MC[i]}">${m}</div>
+      <div class="mc-pct" style="color:${MC[i]}">${(pi[i]*100).toFixed(1)}%</div>
+      <div class="mc-bar"><div class="mc-fill" style="width:${pi[i]*100}%;background:${MC[i]}"></div></div>
+    </div>`).join('');
+  // colored bar strip
+  document.getElementById('pi-bar-strip').innerHTML=pi.map((v,i)=>`<div style="flex:${v};background:${MC[i]};transition:flex .8s;${i===0?'border-radius:100px 0 0 100px':i===pi.length-1?'border-radius:0 100px 100px 0':''}"></div>`).join('');
+  // verify
+  const pPi=mulPv(pi,P);
+  const err=pi.reduce((s,v,i)=>s+Math.abs(v-pPi[i]),0);
+  document.getElementById('verify-out').textContent=`π*P ≈ π, Σ|πᵢ−(πP)ᵢ| = ${err.toFixed(6)} ✓`;
+}
+
+function buildConvergence(){
+  const pi=stationary(P);
+  let v=[1,0,0]; // start: 100% kotlet
+  let h=`<div class="conv-cell" style="border-color:${MC[0]};color:${MC[0]}">π⁽⁰⁾<br>${(v[0]*100).toFixed(0)}-${(v[1]*100).toFixed(0)}-${(v[2]*100).toFixed(0)}</div>`;
+  for(let n=1;n<=8;n++){
+    v=mulPv(v,P);
+    const diff=v.reduce((s,vi,i)=>s+Math.abs(vi-pi[i]),0);
+    const t=Math.max(0,1-diff*5);
+    const col=`rgba(96,255,176,${0.3+0.7*t})`;
+    h+=`<div class="conv-cell" style="border-color:${col};color:${col}">π⁽${n}⁾<br>${(v[0]*100).toFixed(0)}-${(v[1]*100).toFixed(0)}-${(v[2]*100).toFixed(0)}</div>`;
+  }
+  document.getElementById('conv-grid').innerHTML=h;
+}
+
+function simStep(){
+  const row=P[simState];
+  let r=Math.random(),cum=0,next=row.length-1;
+  for(let k=0;k<row.length;k++){cum+=row[k];if(r<cum){next=k;break;}}
+  const prev=simState; simState=next; hist.push(next);
+  const tape=document.getElementById('tape');
+  if(hist.length===1) tape.innerHTML='';
+  const sp=document.createElement('span'); sp.className='dot';
+  sp.textContent=ICONS[next]; tape.appendChild(sp); tape.scrollLeft=tape.scrollWidth;
+  buildMealsGrid();
+  const col=MC[next];
+  document.getElementById('inf').innerHTML=`${ICONS[prev]} ${MEALS[prev]} → <strong style="color:${col}">${ICONS[next]} ${MEALS[next]}</strong> | p = <strong style="color:${col};font-size:15px">${(row[next]*100).toFixed(0)}%</strong>`;
+}
+function sim30(){for(let i=0;i<30;i++) setTimeout(simStep,i*60);}
+function simReset(){simState=0;hist=[];document.getElementById('tape').innerHTML='<span style="color:var(--mu);font-size:13px">Kliknij…</span>';document.getElementById('inf').textContent='—';buildMealsGrid();}
+
+buildSliders(); updateAllUI();
+</script>
+</body></html>

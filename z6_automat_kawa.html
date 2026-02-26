@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="pl"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Zad. 6 — Automat z kawą</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#061410;--card:#0c2018;--bord:#144028;--kc:#60ff90;--tc:#ffbe40;--mu:#406050;--tx:#d8f0e0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:0 0 80px}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 700px 500px at 30% 30%,rgba(60,220,120,.06),transparent),radial-gradient(ellipse 600px 500px at 75% 70%,rgba(255,190,60,.05),transparent);pointer-events:none}
+.page{max-width:800px;margin:0 auto;padding:0 20px;position:relative}
+header{padding:44px 0 30px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:24px}
+.badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--kc);padding:4px 14px;border:1px solid rgba(96,255,144,.3);border-radius:100px;display:inline-block;margin-bottom:14px}
+h1{font-family:'Syne',sans-serif;font-size:clamp(24px,5vw,40px);font-weight:900;line-height:1.1;margin-bottom:8px}
+h1 span{color:var(--kc)}
+.sub{color:var(--mu);font-size:14px}
+.card{background:var(--card);border:1.5px solid var(--bord);border-radius:20px;padding:24px;margin-bottom:16px}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;margin-bottom:14px}
+.story{background:rgba(96,255,144,.06);border:1.5px solid rgba(96,255,144,.16);border-radius:16px;padding:20px;margin-bottom:16px}
+.story p{font-size:14px;line-height:1.8;color:#a8d8b8;font-style:italic}
+.story strong{color:#c8ecd8;font-style:normal}
+/* sliders */
+.sl-row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.sl-lbl{width:210px;font-size:13px;font-weight:700;font-family:'DM Mono',monospace}
+.sl-tr{flex:1;position:relative;height:7px;background:rgba(255,255,255,.06);border-radius:100px}
+.sl-fi{height:100%;border-radius:100px;transition:width .3s;position:absolute;inset:0 auto 0 0}
+input[type=range]{position:absolute;inset:0;width:100%;height:100%;-webkit-appearance:none;background:transparent;cursor:pointer;z-index:3}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px rgba(0,0,0,.5);cursor:pointer}
+.sl-val{width:44px;text-align:right;font-family:'DM Mono',monospace;font-size:13px;font-weight:700}
+/* big state display */
+.states-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.state-big{border-radius:18px;padding:22px 16px;text-align:center;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+.state-big.active{transform:scale(1.06)}
+.sb-icon{font-size:52px;display:block;margin-bottom:8px}
+.sb-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.sb-stat{font-family:'Syne',sans-serif;font-size:36px;font-weight:900;line-height:1}
+.sb-bar{height:8px;background:rgba(255,255,255,.08);border-radius:100px;margin-top:10px;overflow:hidden}
+.sb-fill{height:100%;border-radius:100px;transition:width .8s cubic-bezier(.34,1.56,.64,1)}
+/* matrix 2x2 */
+.mat2{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:8px;align-items:center;margin:12px 0}
+.mh{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--mu);text-align:center}
+.mc{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;text-align:center;padding:12px 10px;border-radius:10px}
+.msum{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;text-align:center}
+/* convergence display */
+.conv-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0;font-family:'DM Mono',monospace;font-size:12px}
+.conv-block{padding:6px 10px;border-radius:8px;text-align:center;border:1.5px solid;transition:all .4s;min-width:70px}
+.conv-arrow{color:var(--mu)}
+/* sim */
+.btn{padding:9px 20px;border-radius:100px;border:2px solid var(--kc);background:transparent;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:var(--tx);transition:all .18s;margin:3px}
+.btn:hover,.btn.fill{background:var(--kc);color:var(--bg);transform:scale(1.04)}
+.tape{display:flex;gap:5px;flex-wrap:wrap;min-height:44px;padding:10px;background:rgba(255,255,255,.02);border-radius:12px;align-items:center;margin:8px 0;border:1px solid var(--bord)}
+.dot{font-size:24px;animation:pop .3s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.inf{font-family:'DM Mono',monospace;font-size:12px;padding:8px 12px;background:rgba(96,255,144,.05);border:1px solid rgba(96,255,144,.12);border-radius:10px;margin-top:8px;min-height:34px}
+.pi-eq{font-family:'DM Mono',monospace;font-size:13px;line-height:2.2;color:var(--kc);padding:14px;background:rgba(96,255,144,.04);border:1px solid rgba(96,255,144,.12);border-radius:12px}
+</style>
+</head><body>
+<div class="page">
+<header>
+  <div class="badge">ZADANIE 6</div>
+  <h1>Automat z <span>kawą i herbatą</span></h1>
+  <div class="sub">Rozkład stacjonarny πP = π — system w dynamicznej równowadze</div>
+</header>
+
+<div class="story">
+  <p>☕ <strong>Historyjka:</strong> Automat z napojami na uczelni sprzedaje kawę i herbatę. Studenci kupują losowo, ale <em>proporcje się stabilizują</em>: ~60% kawa, ~40% herbata. Automat "pamięta" ostatni zakup i dostosowuje ofertę. Jeśli start odpowiada tym proporcjom — <strong>statystyka nigdy się nie zmienia!</strong> To właśnie rozkład stacjonarny: system żyje, konkretne osoby się zmieniają, ale globalny podział pozostaje stały.</p>
+</div>
+
+<div class="card">
+  <div class="card-title">🎛️ Ustaw nawyki klientów automatu</div>
+  <div class="sl-row">
+    <div class="sl-lbl" style="color:var(--kc)">☕ p(kawa|kawa) = p11</div>
+    <div class="sl-tr"><div class="sl-fi" id="sf11" style="background:var(--kc)"></div><input type="range" id="sl11" min="1" max="99" value="70" oninput="go()"></div>
+    <div class="sl-val" style="color:var(--kc)" id="v11">70%</div>
+  </div>
+  <div class="sl-row">
+    <div class="sl-lbl" style="color:var(--tc)">🍵 p(kawa|herbata) = p21</div>
+    <div class="sl-tr"><div class="sl-fi" id="sf21" style="background:var(--tc)"></div><input type="range" id="sl21" min="1" max="99" value="40" oninput="go()"></div>
+    <div class="sl-val" style="color:var(--tc)" id="v21">40%</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">⚖️ Rozkład stacjonarny automatu</div>
+  <div class="states-2" id="states-2"></div>
+  <div style="height:14px;border-radius:100px;overflow:hidden;display:flex;margin-top:4px">
+    <div id="pi-bar-k" style="background:var(--kc);transition:flex .8s;border-radius:100px 0 0 100px"></div>
+    <div id="pi-bar-t" style="background:var(--tc);transition:flex .8s;border-radius:0 100px 100px 0"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">📐 Macierz przejścia P + sumy wierszy</div>
+  <div class="mat2" id="mat2"></div>
+  <div class="pi-eq" id="pi-eq"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">🔄 Zbieżność π⁽ⁿ⁾ → π (z dowolnego startu)</div>
+  <div style="font-size:12px;color:var(--mu);margin-bottom:8px">Start od rozkładu (100% kawa, 0% herbata) → zbieganie do stacjonarnego</div>
+  <div class="conv-row" id="conv-row"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">🎲 Symulacja zakupów w automacie</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+    <button class="btn fill" onclick="simStep()">☕ Następny klient</button>
+    <button class="btn" onclick="sim20()">× 20 klientów</button>
+    <button class="btn" onclick="simReset()">↺</button>
+  </div>
+  <div class="tape" id="tape"><span style="color:var(--mu);font-size:13px">Kliknij…</span></div>
+  <div class="inf" id="inf">—</div>
+</div>
+</div>
+
+<script>
+let p11=.70,p21=.40,simState=0,hist=[];
+
+function P(){return[[p11,1-p11],[p21,1-p21]];}
+function mulPv(v){const m=P();return[v[0]*m[0][0]+v[1]*m[1][0],v[0]*m[0][1]+v[1]*m[1][1]];}
+
+function go(){
+  p11=+document.getElementById('sl11').value/100;
+  p21=+document.getElementById('sl21').value/100;
+  ['sf11','sf21'].forEach((id,i)=>document.getElementById(id).style.width=([p11,p21][i]*100)+'%');
+  ['v11','v21'].forEach((id,i)=>document.getElementById(id).textContent=([p11,p21][i]*100).toFixed(0)+'%');
+  buildStationary(); buildMatrix(); buildConvergence();
+}
+
+function buildStationary(){
+  const p12=1-p11; const pi1=p21/(p12+p21),pi2=1-pi1;
+  document.getElementById('states-2').innerHTML=`
+    <div class="state-big" style="background:rgba(96,255,144,.07);border:2px solid rgba(96,255,144,.25)">
+      <span class="sb-icon">☕</span>
+      <div class="sb-name" style="color:var(--kc)">Kawa</div>
+      <div class="sb-stat" style="color:var(--kc)">${(pi1*100).toFixed(1)}%</div>
+      <div class="sb-bar"><div class="sb-fill" style="width:${pi1*100}%;background:var(--kc)"></div></div>
+      <div style="font-size:11px;color:var(--mu);margin-top:6px">π₁ = stacjonarne</div>
+    </div>
+    <div class="state-big" style="background:rgba(255,190,64,.07);border:2px solid rgba(255,190,64,.25)">
+      <span class="sb-icon">🍵</span>
+      <div class="sb-name" style="color:var(--tc)">Herbata</div>
+      <div class="sb-stat" style="color:var(--tc)">${(pi2*100).toFixed(1)}%</div>
+      <div class="sb-bar"><div class="sb-fill" style="width:${pi2*100}%;background:var(--tc)"></div></div>
+      <div style="font-size:11px;color:var(--mu);margin-top:6px">π₂ = stacjonarne</div>
+    </div>`;
+  document.getElementById('pi-bar-k').style.flex=pi1;
+  document.getElementById('pi-bar-t').style.flex=pi2;
+}
+
+function buildMatrix(){
+  const m=P(); const p12=1-p11,p22=1-p21;
+  document.getElementById('mat2').innerHTML=`
+    <div class="mh"></div><div class="mh" style="color:var(--kc)">→ Kawa (1)</div><div class="mh" style="color:var(--tc)">→ Herbata (2)</div><div class="mh" style="color:var(--mu)">Σ</div>
+    <div class="mh" style="color:var(--kc)">Kawa (1)</div>
+    <div class="mc" style="background:rgba(96,255,144,.12);color:var(--kc)">${(p11*100).toFixed(0)}%</div>
+    <div class="mc" style="background:rgba(255,190,64,.08);color:var(--tc)">${(p12*100).toFixed(0)}%</div>
+    <div class="msum" style="color:#60ffb0">100%</div>
+    <div class="mh" style="color:var(--tc)">Herbata (2)</div>
+    <div class="mc" style="background:rgba(96,255,144,.08);color:var(--kc)">${(p21*100).toFixed(0)}%</div>
+    <div class="mc" style="background:rgba(255,190,64,.12);color:var(--tc)">${(p22*100).toFixed(0)}%</div>
+    <div class="msum" style="color:#60ffb0">100%</div>`;
+  const pi1=p21/(p12+p21),pi2=1-pi1;
+  document.getElementById('pi-eq').innerHTML=
+    `πP = π  (rozkład stacjonarny — punkt stały)<br>π₁ = p₂₁/(p₁₂+p₂₁) = ${(p21*100).toFixed(0)}%/(${(p12*100).toFixed(0)}%+${(p21*100).toFixed(0)}%) = <strong style="color:var(--kc)">${(pi1*100).toFixed(1)}%</strong><br>π₂ = p₁₂/(p₁₂+p₂₁) = <strong style="color:var(--tc)">${(pi2*100).toFixed(1)}%</strong><br>Weryfikacja: π*P = [${(pi1*p11+pi2*p21).toFixed(3)}, ${(pi1*(1-p11)+pi2*(1-p21)).toFixed(3)}] ≈ [${pi1.toFixed(3)}, ${pi2.toFixed(3)}] ✓`;
+}
+
+function buildConvergence(){
+  let v=[1,0]; // start: 100% kawa
+  const steps=8; let h='';
+  const pi1=p21/((1-p11)+p21);
+  h+=`<span class="conv-block" style="border-color:var(--kc);color:var(--kc)">(100%,0%)</span>`;
+  for(let i=0;i<steps;i++){
+    v=mulPv(v);
+    const diff=Math.abs(v[0]-pi1);
+    const col=diff<0.005?'var(--kc)':'rgba(96,255,144,'+(0.4+0.6*(1-diff))+')';
+    h+=`<span class="conv-arrow">→</span>`;
+    h+=`<span class="conv-block" style="border-color:${col};color:${col}">(${(v[0]*100).toFixed(0)}%,${(v[1]*100).toFixed(0)}%)</span>`;
+  }
+  h+=`<span class="conv-arrow">→ π!</span>`;
+  document.getElementById('conv-row').innerHTML=h;
+}
+
+function simStep(){
+  const m=P(); const row=m[simState];
+  const next=Math.random()<row[0]?0:1;
+  const prev=simState; simState=next; hist.push(next);
+  const tape=document.getElementById('tape');
+  if(hist.length===1) tape.innerHTML='';
+  const sp=document.createElement('span'); sp.className='dot';
+  sp.textContent=next===0?'☕':'🍵'; tape.appendChild(sp); tape.scrollLeft=tape.scrollWidth;
+  const col=next===0?'var(--kc)':'var(--tc)';
+  document.getElementById('inf').innerHTML=
+    `${prev===0?'☕ Kawa':'🍵 Herbata'} → <strong style="color:${col}">${next===0?'☕ Kawa':'🍵 Herbata'}</strong> | p(przejście) = <strong style="color:${col};font-size:15px">${(row[next]*100).toFixed(0)}%</strong>`;
+}
+function sim20(){for(let i=0;i<20;i++) setTimeout(simStep,i*80);}
+function simReset(){simState=0;hist=[];document.getElementById('tape').innerHTML='<span style="color:var(--mu);font-size:13px">Kliknij…</span>';document.getElementById('inf').textContent='—';}
+
+go();
+</script>
+</body></html>
